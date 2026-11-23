@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WC Required Chains Test Dapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --fg: #14171c;
+    --muted: #5d6573;
+    --line: #dde1e7;
+    --accent: #3b5bdb;
+    --accent-fg: #ffffff;
+    --ok: #2b8a3e;
+    --err: #c92a2a;
+    --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --surface: #171a20;
+      --fg: #e8eaee;
+      --muted: #9aa3b2;
+      --line: #2a2f38;
+      --accent: #7b93ff;
+      --accent-fg: #0f1115;
+      --ok: #69db7c;
+      --err: #ff8787;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 var(--font-body);
+    padding: 32px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px));
+  }
+  main { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  h1 { font-size: 1.5rem; font-weight: 600; margin: 0; text-wrap: balance; }
+  h2 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+  p { margin: 0; color: var(--muted); }
+  code, .mono { font-family: var(--font-mono); font-size: 0.85em; }
+  section { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  label { display: flex; flex-direction: column; gap: 6px; font-weight: 500; }
+  label small { font-weight: 400; color: var(--muted); }
+  input[type="text"] {
+    font: 14px var(--font-mono);
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--fg);
+    width: 100%;
+  }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  button {
+    font: 500 14px var(--font-body);
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .preset { text-align: left; display: flex; flex-direction: column; gap: 2px; flex: 1 1 200px; }
+  .preset span { font-weight: 400; font-size: 12px; color: var(--muted); }
+  .uri-box { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+  .uri-box img { width: 200px; height: 200px; background: #fff; padding: 8px; border-radius: 8px; }
+  .uri-text { word-break: break-all; font-family: var(--font-mono); font-size: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; min-width: 0; }
+  .status { font-weight: 500; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); }
+  pre { margin: 0; overflow-x: auto; font: 12px/1.5 var(--font-mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; max-height: 320px; }
+  @media (max-width: 560px) {
+    .uri-box { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <h1>WC Required Chains Test Dapp</h1>
+    <p>Sends a WalletConnect session proposal with real <code>requiredNamespaces</code>, using <code>@walletconnect/sign-client@2.20.3</code> (versions 2.21.0+ move required chains into optional).</p>
+  </header>
+
+  <section>
+    <h2>Project</h2>
+    <label for="projectId">WalletConnect project ID
+      <small>Stored only in this browser.</small>
+      <input type="text" id="projectId" placeholder="e.g. 1a2b3c..." autocomplete="off">
+    </label>
+  </section>
+
+  <section>
+    <h2>Presets</h2>
+    <div class="row">
+      <button type="button" class="preset" data-required="eip155:42161" data-optional="">
+        Missing required account
+        <span>Required Arbitrum. Use an account set with no Arbitrum account.</span>
+      </button>
+      <button type="button" class="preset" data-required="hedera:testnet" data-optional="eip155:1">
+        Unsupported required chain
+        <span>Required Hedera, optional Ethereum.</span>
+      </button>
+      <button type="button" class="preset" data-required="eip155:1" data-optional="">
+        Happy path
+        <span>Required Ethereum.</span>
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Proposal</h2>
+    <label for="required">Required chains
+      <small>Comma-separated CAIP-2 ids. Sent in <code>requiredNamespaces</code>.</small>
+      <input type="text" id="required" value="eip155:42161" autocomplete="off">
+    </label>
+    <label for="optional">Optional chains
+      <small>Comma-separated CAIP-2 ids. Sent in <code>optionalNamespaces</code>.</small>
+      <input type="text" id="optional" value="" autocomplete="off">
+    </label>
+    <div class="row">
+      <button type="button" class="primary" id="generate">Generate URI</button>
+      <button type="button" id="reset">Reset</button>
+    </div>
+    <div class="status" id="status">Not connected.</div>
+  </section>
+
+  <section id="uriSection" hidden>
+    <h2>Pairing URI</h2>
+    <div class="uri-box">
+      <img id="qr" alt="QR code of the WalletConnect URI">
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="uri-text" id="uri"></div>
+        <div class="row"><button type="button" id="copy">Copy URI</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sent proposal</h2>
+    <pre id="sent">Nothing sent yet.</pre>
+  </section>
+
+  <section>
+    <h2>Result</h2>
+    <pre id="result">No result yet.</pre>
+  </section>
+</main>
+
+<script type="module">
+import SignClient from "https://cdn.jsdelivr.net/npm/@walletconnect/sign-client@2.20.3/+esm";
+import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
+
+const DEFAULTS = {
+  eip155: {
+    methods: ["personal_sign", "eth_sendTransaction", "eth_signTypedData_v4"],
+    events: ["chainChanged", "accountsChanged"],
+  },
+  solana: { methods: ["solana_signMessage", "solana_signTransaction"], events: [] },
+  bip122: { methods: ["signMessage", "sendTransfer"], events: [] },
+  hedera: { methods: ["hedera_signMessage"], events: [] },
+};
+
+const $ = (id) => document.getElementById(id);
+const STORAGE_KEY = "wc-required-dapp.projectId";
+
+try { $("projectId").value = localStorage.getItem(STORAGE_KEY) || ""; } catch {}
+$("projectId").addEventListener("input", (e) => {
+  try { localStorage.setItem(STORAGE_KEY, e.target.value.trim()); } catch {}
+});
+
+document.querySelectorAll(".preset").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    $("required").value = btn.dataset.required;
+    $("optional").value = btn.dataset.optional;
+  });
+});
+
+function setStatus(text, kind) {
+  const el = $("status");
+  el.textContent = text;
+  el.className = "status" + (kind ? " " + kind : "");
+}
+
+function parseChains(value) {
+  return value.split(",").map((c) => c.trim()).filter(Boolean);
+}
+
+function toNamespaces(chains) {
+  const out = {};
+  for (const chain of chains) {
+    const ns = chain.split(":")[0];
+    if (!out[ns]) {
+      const d = DEFAULTS[ns] || { methods: [], events: [] };
+      out[ns] = { chains: [], methods: [...d.methods], events: [...d.events] };
+    }
+    out[ns].chains.push(chain);
+  }
+  return out;
+}
+
+let client;
+let clientProjectId;
+
+async function getClient(projectId) {
+  if (client && clientProjectId === projectId) return client;
+  client = await SignClient.init({
+    projectId,
+    metadata: {
+      name: "WC Required Chains Test Dapp",
+      description: "Test dapp sending requiredNamespaces",
+      url: window.location.origin,
+      icons: ["https://avatars.githubusercontent.com/u/37784886"],
+    },
+  });
+  clientProjectId = projectId;
+  client.on("session_delete", () => setStatus("Session deleted by wallet.", "err"));
+  return client;
+}
+
+$("generate").addEventListener("click", async () => {
+  const projectId = $("projectId").value.trim();
+  if (!projectId) {
+    setStatus("Enter a WalletConnect project ID first.", "err");
+    return;
+  }
+  const requiredNamespaces = toNamespaces(parseChains($("required").value));
+  const optionalNamespaces = toNamespaces(parseChains($("optional").value));
+  if (!Object.keys(requiredNamespaces).length && !Object.keys(optionalNamespaces).length) {
+    setStatus("Enter at least one chain.", "err");
+    return;
+  }
+
+  $("generate").disabled = true;
+  $("result").textContent = "Waiting for the wallet...";
+  setStatus("Initializing client...");
+  try {
+    const c = await getClient(projectId);
+    const params = { requiredNamespaces, optionalNamespaces };
+    $("sent").textContent = JSON.stringify(params, null, 2);
+    const { uri, approval } = await c.connect(params);
+    if (uri) {
+      $("uri").textContent = uri;
+      $("qr").src = await QRCode.toDataURL(uri, { margin: 1, width: 400 });
+      $("uriSection").hidden = false;
+    }
+    setStatus("URI ready. Paste it in the wallet.");
+    const session = await approval();
+    setStatus("Session approved.", "ok");
+    $("result").textContent = JSON.stringify(
+      { topic: session.topic, namespaces: session.namespaces, peer: session.peer.metadata },
+      null,
+      2,
+    );
+  } catch (err) {
+    setStatus("Proposal rejected or failed.", "err");
+    $("result").textContent = JSON.stringify(
+      { message: err?.message ?? String(err), code: err?.code },
+      null,
+      2,
+    );
+  } finally {
+    $("generate").disabled = false;
+  }
+});
+
+$("copy").addEventListener("click", async () => {
+  const text = $("uri").textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copy").textContent = "Copied";
+    setTimeout(() => ($("copy").textContent = "Copy URI"), 1500);
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents($("uri"));
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+});
+
+$("reset").addEventListener("click", () => {
+  $("uriSection").hidden = true;
+  $("uri").textContent = "";
+  $("qr").removeAttribute("src");
+  $("sent").textContent = "Nothing sent yet.";
+  $("result").textContent = "No result yet.";
+  setStatus("Not connected.");
+});
+</script>
+</body>
+</html>
